@@ -17,3 +17,8 @@ test
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
 
+# Sensitive
+.env
+config.yml
+
+deploy-todo\.txt
