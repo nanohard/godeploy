@@ -4,9 +4,12 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"net/http"
+	"os"
+	"time"
 
+	"github.com/gorilla/mux"
 	"gopkg.in/yaml.v2"
-	// "github.com/ghodss/yaml"
 )
 
 type Config struct {
@@ -17,7 +20,7 @@ type Config struct {
 // type project map[string][]Project
 type Project struct {
 	Name    string
-	RepoURL string    `yaml:"repo_url"`
+	RepoURL string  `yaml:"repo_url"`
 	Build   Options `yaml:"build"`
 }
 
@@ -27,40 +30,54 @@ type Options struct {
 	Tags    bool   `yaml:"tags"`
 }
 
-// projects:
-//   nanohard:
-//     repo_url: git@github.com:nanohard/site-nanohard-main
-//     build:
-//       command: cd /var/www/nanohard.net && git reset --hard HEAD && git fetch
-//   robonano:
-//     repo_url: git@github.com:nanohard/robonano
-//     build:
-//       tags: true
+func main() {
+	// Init gorilla mux.
+	r := mux.NewRouter()
 
-// type Message struct {
-// 	Environments map[string]models `yaml:"Environments"`
-// }
+	// Server options
+	server := &http.Server{
+		Addr: os.Getenv("HOST") + ":" + os.Getenv("PORT"),
+		// Good practice to set timeouts to avoid Slowloris attacks.
+		WriteTimeout: time.Second * 15,
+		ReadTimeout:  time.Second * 15,
+		IdleTimeout:  time.Second * 60,
+		Handler:      r, // Pass our instance of gorilla/mux in.
+	}
 
-// type models map[string][]Model
+	r.HandleFunc("/api/{project}", build)
 
-// type Model struct {
-// 	AppType     string `yaml:"app-type"`
-// 	ServiceType string `yaml:"service-type"`
-// }
+	log.Println("Web server starting")
+	if os.Getenv("SSL") == "true" {
+		// Run SSL server.
+		if err := server.ListenAndServeTLS(
+			os.Getenv("CERTFILE"), os.Getenv("KEYFILE")); err != nil {
+				log.Println("server.ListenAndServeTLS():", err)
+		}
+	} else if os.Getenv("SSL") == "false" {
+		if err := server.ListenAndServe(); err != nil {
+			log.Println("server.ListenAndServe():", err)
+		}
+	}
 
-// Environments:
-//  sys1:
-//     models:
-//     - app-type: app1
-//       service-type: fds
-//     - app-type: app2
-//       service-type: era
-//  sys2:
-//     models:
-//     - app-type: app1
-//       service-type: fds
-//     - app-type: app2
-//       service-type: era
+	// var c Config
+	// c.getYaml()
+	// fmt.Println(c.Projects[0].Build.Tags)
+}
+
+func build(_ http.ResponseWriter, r *http.Request)  {
+	vars := mux.Vars(r)
+	project := vars["project"]
+
+	var c Config
+	c.getYaml()
+	for _, p := range c.Projects {
+		if p.Name == project {
+
+			break
+		}
+	}
+	// fmt.Println(c.Projects[0].Build.Tags)
+}
 
 func (c *Config) getYaml() *Config {
 
@@ -74,10 +91,4 @@ func (c *Config) getYaml() *Config {
 	}
 
 	return c
-}
-
-func main() {
-	var c Config
-	c.getYaml()
-	fmt.Println(c.Projects[0].Build.Tags)
 }
