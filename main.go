@@ -5,15 +5,14 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"os"
-	"time"
+	// "os"
+	// "time"
 
 	"github.com/gorilla/mux"
 	"gopkg.in/yaml.v2"
 )
 
 type Config struct {
-	Port     string
 	Projects []Project `yaml:"projects"`
 }
 
@@ -32,36 +31,36 @@ type Options struct {
 
 func main() {
 	// Init gorilla mux.
-	r := mux.NewRouter()
+	// r := mux.NewRouter()
+	//
+	// // Server options
+	// server := &http.Server{
+	// 	Addr: os.Getenv("HOST") + ":" + os.Getenv("PORT"),
+	// 	// Good practice to set timeouts to avoid Slowloris attacks.
+	// 	WriteTimeout: time.Second * 15,
+	// 	ReadTimeout:  time.Second * 15,
+	// 	IdleTimeout:  time.Second * 60,
+	// 	Handler:      r, // Pass our instance of gorilla/mux in.
+	// }
+	//
+	// r.HandleFunc("/api/{project}", build)
+	//
+	// log.Println("Web server starting")
+	// if os.Getenv("SSL") == "true" {
+	// 	// Run SSL server.
+	// 	if err := server.ListenAndServeTLS(
+	// 		os.Getenv("CERTFILE"), os.Getenv("KEYFILE")); err != nil {
+	// 			log.Println("server.ListenAndServeTLS():", err)
+	// 	}
+	// } else if os.Getenv("SSL") == "false" {
+	// 	if err := server.ListenAndServe(); err != nil {
+	// 		log.Println("server.ListenAndServe():", err)
+	// 	}
+	// }
 
-	// Server options
-	server := &http.Server{
-		Addr: os.Getenv("HOST") + ":" + os.Getenv("PORT"),
-		// Good practice to set timeouts to avoid Slowloris attacks.
-		WriteTimeout: time.Second * 15,
-		ReadTimeout:  time.Second * 15,
-		IdleTimeout:  time.Second * 60,
-		Handler:      r, // Pass our instance of gorilla/mux in.
-	}
-
-	r.HandleFunc("/api/{project}", build)
-
-	log.Println("Web server starting")
-	if os.Getenv("SSL") == "true" {
-		// Run SSL server.
-		if err := server.ListenAndServeTLS(
-			os.Getenv("CERTFILE"), os.Getenv("KEYFILE")); err != nil {
-				log.Println("server.ListenAndServeTLS():", err)
-		}
-	} else if os.Getenv("SSL") == "false" {
-		if err := server.ListenAndServe(); err != nil {
-			log.Println("server.ListenAndServe():", err)
-		}
-	}
-
-	// var c Config
-	// c.getYaml()
-	// fmt.Println(c.Projects[0].Build.Tags)
+	var c Config
+	c.getYaml()
+	fmt.Println(c)
 }
 
 func build(_ http.ResponseWriter, r *http.Request)  {
@@ -76,7 +75,7 @@ func build(_ http.ResponseWriter, r *http.Request)  {
 			break
 		}
 	}
-	// fmt.Println(c.Projects[0].Build.Tags)
+	fmt.Println(c.Projects[0].Build.Tags)
 }
 
 func (c *Config) getYaml() *Config {
