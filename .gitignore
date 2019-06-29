@@ -22,3 +22,5 @@ test
 config.yml
 
 deploy-todo\.txt
+
+godeploy

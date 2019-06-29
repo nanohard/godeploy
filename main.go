@@ -2,12 +2,10 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
-	// "os/exec"
 	"os/signal"
 	"syscall"
 	"time"
@@ -24,16 +22,18 @@ type Config struct {
 
 // type project map[string][]Project
 type Project struct {
-	Name    string  `yaml:"name"`
-	RepoURL string  `yaml:"repo_url"`
-	Build   Build   `yaml:"build"`
+	Name    string `yaml:"name"`
+	RepoURL string `yaml:"repo_url"`
+	Build   Build  `yaml:"build"`
 }
 
 // type options map[string]Options
 type Build struct {
-	// Command string `yaml:"command"`
-	Commands []Command `yaml:"commands"`
-	Tags    bool       `yaml:"tags"`
+	Type         string    `yaml:"type"`
+	WorkingDir string `yaml:"working_dir"`
+	Commands     []Command `yaml:"commands"`
+	PreCommands  []Command `yaml:"pre_commands"`
+	PostCommands []Command `yaml:"post_commands"`
 }
 
 type Command struct {
@@ -41,9 +41,6 @@ type Command struct {
 }
 
 func main() {
-	var c Config
-	c.getYaml()
-	fmt.Println(c.Projects[0].Build.Commands[0].Command)
 	// Init gorilla mux.
 	r := mux.NewRouter()
 
@@ -57,7 +54,7 @@ func main() {
 		Handler:      r, // Pass our instance of gorilla/mux in.
 	}
 
-	r.HandleFunc("/api/{project}", getProject)
+	r.HandleFunc("/deploy/{project}", getProject)
 
 	// Shutdown logic --------------------------------------------------------
 	// `signal.Notify` registers the given channel to
@@ -65,9 +62,8 @@ func main() {
 	gracefulStop := make(chan os.Signal, 1)
 	signal.Notify(gracefulStop, syscall.SIGINT, syscall.SIGTERM)
 
-	// This goroutine executes a blocking receive for
-	// signals. When it gets one it'll print it out
-	// and then notify the program that it can finish.
+	// This goroutine executes a blocking receive for signals.
+	// When it gets one it will notify the program that it can finish.
 	go func() {
 		<-gracefulStop
 		log.Println("Preparing to shut down...")
@@ -87,7 +83,7 @@ func main() {
 		// Run SSL server.
 		if err := server.ListenAndServeTLS(
 			os.Getenv("CERTFILE"), os.Getenv("KEYFILE")); err != nil {
-				log.Println("server.ListenAndServeTLS():", err)
+			log.Println("server.ListenAndServeTLS():", err)
 		}
 	} else if os.Getenv("SSL") == "false" {
 		if err := server.ListenAndServe(); err != nil {
@@ -96,15 +92,7 @@ func main() {
 	}
 }
 
-func build(p *Project)  {
-	// if p.Build.Tags {
-	//
-	// } else {
-	// 	exec.Command()
-	// }
-}
-
-func getProject(_ http.ResponseWriter, r *http.Request)  {
+func getProject(_ http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	project := vars["project"]
 
@@ -116,11 +104,9 @@ func getProject(_ http.ResponseWriter, r *http.Request)  {
 			break
 		}
 	}
-	fmt.Println(c.Projects[0].Build.Tags)
 }
 
 func (c *Config) getYaml() *Config {
-
 	yamlFile, err := ioutil.ReadFile("config.yml")
 	if err != nil {
 		log.Printf("yamlFile.Get err #%v ", err)
@@ -129,6 +115,5 @@ func (c *Config) getYaml() *Config {
 	if err != nil {
 		log.Fatalf("Unmarshal: %v", err)
 	}
-
 	return c
 }
