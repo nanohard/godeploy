@@ -20,3 +20,7 @@ test
 # Sensitive
 .env
 config.yml
+
+deploy-todo\.txt
+
+godeploy
