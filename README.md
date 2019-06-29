@@ -2,9 +2,9 @@
 A self-service webhook deployment server.
 
 You will need 3 things:
-- config.yml
-- .env
-- systemd file
+- [config.yml](#configyml)
+- [.env](#env)
+- [systemd file](#libsystemdsystemgodeploy)
 
 ### config.yml
 ```yaml
@@ -37,19 +37,19 @@ In this example the two webhooks would be:
 - example.com/deploy/website
 - example.com/deploy/robonano
 
-- name: name of project; used as the URI for the webhook
-- repo_url: currently unused
+<br>
 
-- type: `commands` or `tags`
-  - `git_dir` is the path where the git dir is located; used as the working directory for all commands
+- **name**: name of project; used as the URI for the webhook
+- **repo_url**: currently unused
+- **type**: `commands` or `tags`
+  - **git_dir** is the path where the git dir is located; used as the working directory for all commands
   - `commands` will run the commands in order
-  
   - `tags` will fetch and checkout the latest tag
-    - `pre_commands` will run before it fetches latest tag
-    - `post_commands` will run after the latest tag is checked out
+    - **pre_commands** will run before it fetches latest tag
+    - **post_commands** will run after the latest tag is checked out
     
 ### .env
-```env
+```ini
 SSL=false
 HOST=
 PORT=4545
@@ -58,7 +58,7 @@ KEYFILE=/etc/letsencrypt/live/example.com/privkey.pem
 ```
 
 ### /lib/systemd/system/godeploy
-```
+```ini
 [Unit]
 Description=Git project deployment service
 After=network.target
