@@ -64,8 +64,10 @@ Description=Git project deployment service
 After=network.target
 [Service]
 Type=simple
-User=user
-Group=www-data
+Environment=GOCACHE=/home/user/.cache/go-build # these 2 lines are needed
+Environment=GOPATH=/home/user/gopath           # to build as root
+#User=
+#Group=
 ExecStart=/var/www/godeploy/godeploy
 WorkingDirectory=/var/www/godeploy
 Restart=on-failure
@@ -75,4 +77,5 @@ WantedBy=multi-user.target
 Alias=godeploy.service
 ```
 If `user` and `group` are not set then it will run as `root`.
-It's advised to use the systemd file in order to be able to run commands requiring `sudo`, but also set the `user` and `group` so the files modified are not saved as `root`.
+This is needed if you are manipulating any systemd services;
+otherwise set `user` and `group` to what you need, maybe `www-data`.
